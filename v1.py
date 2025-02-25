@@ -1,3 +1,4 @@
+import httpx
 from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 from openai import OpenAI
@@ -21,7 +22,7 @@ def handle_preflight():
 def chat_endpoint():
     data = request.json
     messages = data.get('messages', [])
-    model = data.get('model', 'lmstudio-community/Meta-Llama-3.1-8B-Instruct-GGUF')
+    model = data.get('model', 'deepseek-r1-distill-llama-8b')
 
     def generate():
         try:
@@ -51,13 +52,15 @@ def chat_endpoint():
 
 @app.route('/models', methods=['GET'])
 def get_models():
-    # Aquí puedes implementar la lógica para obtener los modelos
-    # Por ahora, solo devolveremos una respuesta de ejemplo
-    models = ["modelo1", "modelo2", "modelo3"]
-    return jsonify(models)
+    response = httpx.get("http://localhost:1234/v1/models")
+    data = json.loads(response.text)
+    ret: list = []
+    for model in data["data"]:
+        ret.append(model["id"])
+    return jsonify(ret)
 
 def run_server():
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='127.0.0.1', port=5000)
 
 if __name__ == '__main__':
     run_server()
